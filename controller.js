@@ -30,6 +30,15 @@ function clamp(x, a = 0, b = 1) {
   return Math.max(a, Math.min(x, b));
 }
 
+function parseInput(fwAxis, lrAxis) {
+  let bytes = [];
+  bytes[0] = fwAxis & 0xff;
+  bytes[1] = (fwAxis >> 8) & 0xff;
+  bytes[2] = lrAxis & 0xff;
+  //return String.fromCharCode.apply(null, bytes);
+  return bytes;
+}
+
 // Determine currentGamepad on (dis)connect
 function getCurrentGamepad() {
   return Array.from(navigator.getGamepads()).find((x) => x != null);
@@ -86,6 +95,7 @@ function schemeKeyboard() {
 
 let oldFwAxis = 0,
   oldLrAxis = 0;
+let oldData = "";
 function getInput() {
   const schemes = {
     trigger: schemeTrigger,
@@ -95,19 +105,30 @@ function getInput() {
 
   let fwAxis = 0,
     lrAxis = 90;
+  let data = parseInput(fwAxis, lrAxis);
+
   let scheme = document.getElementById("controlScheme").value;
   if (scheme != null && scheme !== undefined) {
     [fwAxis, lrAxis] = schemes[scheme]();
+    bytes = parseInput(fwAxis, lrAxis);
+    data = String.fromCharCode.apply(null, bytes);
   }
 
   if (clientConnected) {
-    if (fwAxis != oldFwAxis) {
+    /*if (fwAxis != oldFwAxis) {
       client.send("speed", fwAxis.toString());
       oldFwAxis = fwAxis;
     }
     if (lrAxis != oldLrAxis) {
       client.send("direction", lrAxis.toString());
       oldLrAxis = lrAxis;
+    }*/
+    if(data !== oldData) {
+      log(`Data: ${fwAxis}|${lrAxis} (${data})`);
+      updateUI(fwAxis, lrAxis);
+
+      client.send("data", new Uint8Array(bytes));
+      oldData = data;
     }
   }
 }

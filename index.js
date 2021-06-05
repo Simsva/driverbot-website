@@ -37,6 +37,22 @@ function log(message, severity=0) {
   pageConsole.scrollTop = pageConsole.scrollHeight;
 }
 
+function updateUI(speed, direction) {
+  // Speed
+  let signedSpeed = speed/1023 * 100;
+  let speedString = signedSpeed < 0 ? " backwards" : " forwards";
+  if(signedSpeed == 0) speedString = "";
+
+  document.getElementById("currentSpeed").innerText = Math.abs(signedSpeed).toFixed(2) + "%" + speedString;
+  
+  // Direction
+  let signedDirection = direction - 90;
+  let directionString = signedDirection > 0 ? " left" : " right";
+  if(signedDirection == 0) directionString = "";
+
+  document.getElementById("currentDirection").innerHTML = Math.abs(signedDirection).toString() + "&deg;" + directionString;
+}
+
 function onConnect() {
   log("Connected!");
   clientConnected = true;
@@ -49,6 +65,7 @@ function onConnect() {
   // Default stats
   client.send("speed", "0");
   client.send("direction", "90");
+  client.send("data", String.fromCharCode.apply(null, [0, 0, 90]));
 }
 
 // This runs in another dimension or something
@@ -67,7 +84,7 @@ function onMessageArrived(message) {
   if(!(blacklistedTopics.includes(message.destinationName)))
     log("Message: " + message.destinationName + "|" + message.payloadString, 0);
 
-  switch(message.destinationName) {
+  /*switch(message.destinationName) {
   case "speed":
     let signedSpeed = parseInt(message.payloadString)/1023 * 100;
     let speedString = signedSpeed < 0 ? " backwards" : " forwards";
@@ -83,5 +100,5 @@ function onMessageArrived(message) {
 
     document.getElementById("currentDirection").innerHTML = Math.abs(signedDirection).toString() + "&deg;" + directionString;
     break;
-  }
+  }*/
 }
